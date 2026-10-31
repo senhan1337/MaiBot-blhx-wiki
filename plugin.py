@@ -37,7 +37,7 @@ from blhxwiki.paint.drawing import AssetLoader
 from blhxwiki.paint.renderer import Renderer
 from blhxwiki.utils.http_utils import http_client
 from blhxwiki.utils.server_state import close as close_server_state
-from blhxwiki.utils.text import load_aliases, load_index
+from blhxwiki.utils.text import load_aliases
 
 
 class PluginSectionConfig(PluginConfigBase):

@@ -349,7 +349,7 @@ def generate_server_state_image(
             draw.rounded_rectangle((x, y, x + card_w, y + card_h), radius=14, fill=(255, 255, 255), outline=(220, 224, 230))
             draw.text((x + 16, y + (card_h - measure.textbbox((0, 0), item["name"], font=font_body)[3]) // 2), item["name"], font=font_body, fill=(33, 37, 41))
             color = (220, 53, 69) if item.get("maintenance") else (25, 135, 84)
-            draw.rectangle((x + card_w - 34, y + (card_h - 18) // 2, x + card_w - 16, y + (card_h + 18) // 2), fill=color)
+            draw.rounded_rectangle((x + card_w - 34, y + (card_h - 18) // 2, x + card_w - 16, y + (card_h + 18) // 2), radius=5, fill=color)
         top += section_h + gap
 
     output = io.BytesIO(); image.save(output, "PNG"); output.seek(0); return output

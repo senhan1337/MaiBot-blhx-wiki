@@ -6,17 +6,15 @@ from __future__ import annotations
 
 import asyncio
 import json
-import re
 import time
 from pathlib import Path
-from urllib.parse import quote, urljoin
+from urllib.parse import quote
 
 from blhxwiki.utils.http_utils import get as http_get
 from blhxwiki.parser.wiki_parser import BASE_URL, parse_html
 
 SHIP_LIST_URL = BASE_URL + quote("舰娘图鉴")
 EQUIP_LIST_URL = BASE_URL + quote("装备")
-BUILD_SIM_URL = BASE_URL + quote("建造模拟器")
 CACHE_TTL = 7 * 24 * 3600
 
 
@@ -27,16 +25,12 @@ class NameList:
         self.path = Path(data_dir) / "names.json"
         self.ships: list[str] = []
         self.equips: list[str] = []
-        self.icons: dict[str, str] = {}
         self.updated_at = 0.0
         self._load()
 
     @property
     def all(self) -> list[str]:
         return self.ships + self.equips
-
-    def icon_url(self, name: str) -> str | None:
-        return self.icons.get(name)
 
     def _load(self) -> None:
         if not self.path.exists():
@@ -45,7 +39,6 @@ class NameList:
             payload = json.loads(self.path.read_text(encoding="utf-8"))
             self.ships = [str(item) for item in payload.get("ships", [])]
             self.equips = [str(item) for item in payload.get("equips", [])]
-            self.icons = {str(k): str(v) for k, v in payload.get("icons", {}).items()}
             self.updated_at = float(payload.get("updated_at", 0))
         except (OSError, ValueError, TypeError):
             pass
@@ -57,7 +50,6 @@ class NameList:
                 {
                     "ships": self.ships,
                     "equips": self.equips,
-                    "icons": self.icons,
                     "updated_at": self.updated_at,
                 },
                 ensure_ascii=False,
@@ -69,20 +61,17 @@ class NameList:
         return not self.ships or time.time() - self.updated_at > CACHE_TTL
 
     async def refresh(self, force: bool = False) -> bool:
-        """刷新名称列表、头像映射与常驻池；成功返回 True。"""
+        """刷新名称列表；成功返回 True。"""
         if not force and not self.stale():
             return True
 
         ships = await _fetch_ship_names()
         equips = await _fetch_equip_names()
-        icons = await _fetch_icon_map()
         if ships:
             self.ships = ships
         if equips:
             self.equips = equips
-        if icons:
-            self.icons = icons
-        if ships or equips or icons:
+        if ships or equips:
             self.updated_at = time.time()
             self._save()
 
@@ -120,27 +109,6 @@ async def _fetch_equip_names() -> list[str]:
         if title:
             names.append(title.replace(" ", "_").lower())
     return names
-
-
-async def _fetch_icon_map() -> dict[str, str]:
-    """舰娘头像映射：名称 → 原图 URL。"""
-    html = await http_get(SHIP_LIST_URL)
-    if not html:
-        return {}
-    soup = parse_html(html)
-    container = soup.select_one("div#CardSelectTr")
-    if container is None:
-        return {}
-    icons: dict[str, str] = {}
-    for img in container.select("img"):
-        src = img.get("src", "")
-        name = img.get("alt", "").replace("头像.jpg", "")
-        if not name or name.startswith("舰娘头像") or not src:
-            continue
-        url = src.replace("/thumb", "")
-        url = re.split(r"/60px", url)[0]
-        icons[name] = urljoin(BASE_URL, url)
-    return icons
 
 
 async def refresh_in_background(names: NameList, logger=None) -> None:

@@ -100,18 +100,6 @@ def load_aliases(path: Path) -> dict[str, str]:
     return {str(key).lower(): str(value) for key, value in payload.items()}
 
 
-def load_index(path: Path) -> dict[str, str]:
-    if not path.exists():
-        return {}
-    try:
-        payload = json.loads(path.read_text(encoding="utf-8"))
-    except (OSError, ValueError):
-        return {}
-    if not isinstance(payload, dict):
-        return {}
-    return {str(key): str(value) for key, value in payload.items()}
-
-
 def pick_direct(results: list[str], keyword: str) -> str | None:
     normalized = normalize_keyword(keyword)
     if not normalized:
