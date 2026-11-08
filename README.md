@@ -10,7 +10,7 @@
 
 [![License](https://img.shields.io/badge/license-AGPL--3.0-blue.svg)](LICENSE)
 [![Python](https://img.shields.io/badge/python-3.10%2B-3776AB.svg)](https://www.python.org/)
-[![MaiBot SDK](https://img.shields.io/badge/MaiBot%20SDK-2.x-00A1D6.svg)](https://docs.mai-mai.org/plugin/)
+[![MaiBot SDK](https://img.shields.io/badge/MaiBot%20SDK-2.x-00A1D6.svg)](https://docs.maibot.chat/plugin/)
 
 ---
 
@@ -24,7 +24,7 @@
 | 🗺️ | 关卡情报 | 地图、敌舰等级、BOSS、掉落表 |
 | 🏆 | 井号榜单 | 装备一图榜、觉醒榜、萌新榜等 |
 | 📡 | 服务器状态 | 国服 / 日服 / 国际服 / 繁中服，TCP + HTTP 双通道 |
-| 📊 | 科技点筛选 | 按舰种、科技分类分页查舰队科技 |
+| 📊 | 科技点筛选 | 按舰种、属性分页查舰队科技 |
 | 🎲 | 猜老婆 | 随机裁切立绘出题，30 秒限时竞猜 |
 | 🔤 | 无空格 & 别名 | `wiki拉菲皮肤` 照样懂，内置约 690 条别名 |
 
@@ -32,13 +32,11 @@
 
 ## 🧭 快速上手
 
-> 三步进港：**放目录 → 重载 → 开聊。**
+> 三步进港：**装上 → 重载 → 开聊。**
 
-1. **安装**：把 `MaiBot-blhx-wiki` 放进 MaiBot 的 `plugins/` 下（市场安装或手动解压都行）。
+1. **安装**：在插件市场搜索安装，或在 MaiBot 插件页导入 ZIP，二选一。
 2. **重载**：首次加载会自动生成 `config.toml`，默认配置直接可用。
 3. **开聊**：在群里发 `wiki`，帮助菜单会以表格图的形式送到你面前。
-
-> ⚠️ `assets/` 必须随插件一起部署。请直接解压 ZIP，**不要**用会转码中文文件名的安装方式。
 
 **环境要求**
 
@@ -62,13 +60,13 @@
 | `wiki 拉菲` | 属性卡片 |
 | `wiki 拉菲 出处` | 获得途径 |
 | `wiki 拉菲 皮肤` | 全部皮肤 |
-| `wiki 拉菲 大图` | 立绘大图 |
-| `wiki 拉菲 皮肤原图` | 皮肤原图 |
 | `wiki 拉菲 语音` | 语音类型表（图片） |
 | `wiki 拉菲 誓约` | 对应类型的语音 |
 | `wiki 拉菲 科技点` | 舰队科技 |
 | `wiki 拉菲 配装` | 配装推荐图 |
 | `wiki 拉菲 评价` | wiki 评价 |
+| `wiki 拉菲 大图` | 立绘大图 ❌ 暂未实现 |
+| `wiki 拉菲 皮肤原图` | 皮肤原图 ❌ 暂未实现 |
 
 ### 🔫 装备
 
@@ -88,7 +86,7 @@
 | `wiki 2-1` | 关卡地图、BOSS、掉落 |
 | `wiki 服务器状态` | 国服维护状态 |
 | `wiki 服务器状态 日服` | 指定区服（国服/日服/国际服/繁中服） |
-| `wiki 筛选 驱逐 耐久 1` | 舰队科技筛选表（舰种 / 分类 / 页码） |
+| `wiki 筛选 驱逐 耐久 1` | 舰队科技筛选表（舰种 / 属性 / 页码） |
 | `wiki clear` | 清空图片缓存（仅限 `admin_users` 白名单） |
 
 ### 🎮 游戏
@@ -129,7 +127,7 @@
 
 | 位置 | 内容 | 去向 |
 | --- | --- | --- |
-| `assets/` | 图标、字体、头像、别名表、帮助图 | 随插件分发 |
+| `assets/` | 图标、字体、别名表、帮助图 | 随插件分发 |
 | `data_dir` | 名称列表、科技点、群开关、自定义回复 | 自动生成 |
 | `runtime_dir` | 立绘、技能图标、装备图 | 可随时清理，按需重建；猜老婆需要先查询过一些舰娘 |
 
@@ -139,6 +137,7 @@
 
 ## ⚠️ 已知限制
 
+- **立绘大图 / 皮肤原图**：依赖本地资源包，暂未实现，查询会返回提示。
 - **清晰度**：立绘和图标来自 wiki 缩略图，放大到卡片尺寸后略糊，属于上游素材限制。
 - **页面结构**：wiki 改版会导致解析失效，需要跟进选择器。
 - **服务器状态**：依赖官方登录网关，网关无响应时会返回失败提示。
@@ -153,7 +152,7 @@
 
 ## 💙 致谢
 
-- [mirai-blhx-wiki-plugins](https://github.com/DK09/blhx-wiki-mirai-plugin)：原始功能设计与页面解析思路。
+- [mirai-blhx-wiki-plugins](https://github.com/rainlodo/blhx-wiki-mirai-plugin)：原始功能设计与页面解析思路。
 - [碧蓝航线 wiki](https://wiki.biligame.com/blhx)：全部游戏数据来源。
 
 ## 📮 反馈

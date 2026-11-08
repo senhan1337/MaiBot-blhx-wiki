@@ -10,7 +10,7 @@ from blhxwiki.features import quiz, server, tech
 from blhxwiki.models import QueryResult
 from blhxwiki.parser.command_parser import RANK_NAMES, ParsedWikiCommand, parse_wiki_command
 from blhxwiki.utils.cache import clear_cache
-from blhxwiki.utils.text import extract_text
+from blhxwiki.utils.text import extract_text, user_id_from_kwargs
 
 CUODAO_KEYWORDS = ("锉刀", "锉宝", "挫刀", "小锉锉")
 
@@ -42,7 +42,7 @@ async def handle_wiki(plugin, **kwargs) -> tuple:
         image = plugin.renderer.help_image("help.png")
         result = QueryResult(images=[image]) if image else QueryResult(text=help_text(plugin))
     else:
-        result = await dispatch(plugin, parsed, stream_id, user_id=str(kwargs.get("user_id") or ""))
+        result = await dispatch(plugin, parsed, stream_id, user_id=user_id_from_kwargs(kwargs))
 
     await send(plugin, result, stream_id)
     return True, result.text or "[图片]", 2
@@ -96,9 +96,13 @@ async def query_tool(plugin, keyword: str, query_type: str = "", **kwargs) -> di
         plugin,
         ParsedWikiCommand(keyword=keyword, query_type=query_type, raw=keyword),
         kwargs.get("stream_id", ""),
-        user_id=str(kwargs.get("user_id") or ""),
+        user_id=user_id_from_kwargs(kwargs),
     )
-    return {"success": True, "content": result.text or "已生成图片。"}
+    # P2-13：结果直接发送到会话（图片不过模型，不占 token），LLM 只拿文字摘要。
+    stream_id = kwargs.get("stream_id", "")
+    if stream_id:
+        await send(plugin, result, stream_id)
+    return {"success": True, "content": result.text or "已发送查询结果图片。"}
 
 
 async def handle_guess_wife(plugin, **kwargs) -> tuple:
@@ -209,7 +213,7 @@ def help_text(plugin) -> str:
         "碧蓝航线 wiki MaiBot 插件命令：\n"
         "- wiki：显示帮助\n"
         "- wiki [舰娘]：查询舰娘基本属性，例如 wiki 拉菲\n"
-        "- wiki [舰娘] 出处/皮肤/大图/皮肤原图/语音/科技点/配装/评价\n"
+        "- wiki [舰娘] 出处/皮肤/语音/科技点/配装/评价（大图/皮肤原图暂未实现）\n"
         "- wiki [装备]：查询装备，例如 wiki 533\n"
         "- wiki 榜单 / wiki [榜单名]，例如 wiki 装备一图榜\n"
         "- wiki 服务器状态 [国服/日服/国际服/繁中服]\n"

@@ -75,6 +75,21 @@ def extract_text(kwargs: dict[str, Any]) -> str:
     return ""
 
 
+def user_id_from_kwargs(kwargs: dict[str, Any]) -> str:
+    """取用户 ID：优先宿主注入的 user_id，兜底 message.user_info.user_id（新版文档只保证后者存在）。"""
+    value = kwargs.get("user_id")
+    if value:
+        return str(value)
+    message = kwargs.get("message")
+    if isinstance(message, dict):
+        info = message.get("user_info")
+        if isinstance(info, dict):
+            uid = info.get("user_id")
+            if uid:
+                return str(uid)
+    return ""
+
+
 def hook_message_text(message: Any, kwargs: dict[str, Any]) -> str:
     """Hook 消息文本：优先 processed_plain_text，其次消息段列表。"""
     if isinstance(message, dict):

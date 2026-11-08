@@ -116,9 +116,9 @@ class BlhxWikiMaiBotPlugin(MaiBotPlugin):
     # ------------------------------------------------------------------
     @Tool(
         "blhx_wiki_query",
-        brief_description="查询碧蓝航线 wiki 的舰船、装备、榜单、服务器状态等信息",
-        detailed_description=(
-            "根据关键词查询碧蓝航线 wiki 信息。keyword 可为舰船名、装备名、榜单名、服务器状态；"
+        description=(
+            "根据关键词查询碧蓝航线 wiki 的舰船、装备、榜单、服务器状态等信息。"
+            "keyword 可为舰船名、装备名、榜单名、服务器状态；"
             "query_type 可为 属性、出处、皮肤、大图、皮肤原图、语音、科技点、配装、评价、装备、榜单，"
             "留空表示属性。"
         ),

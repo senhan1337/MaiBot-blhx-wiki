@@ -9,7 +9,7 @@ from blhxwiki.parser.command_parser import ParsedWikiCommand
 async def handle_tech_filter(plugin, command: ParsedWikiCommand) -> QueryResult:
     args = command.args or []
     if len(args) < 4:
-        return QueryResult(text="格式：wiki 筛选 [舰种] [科技分类] [页码]\n例如：wiki 筛选 驱逐 耐久 1")
+        return QueryResult(text="格式：wiki 筛选 [舰种] [属性] [页码]\n例如：wiki 筛选 驱逐 耐久 1")
     ship_class, tech_class = args[1], args[2]
     try:
         page = int(args[3])
