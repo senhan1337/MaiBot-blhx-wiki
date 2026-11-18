@@ -1,8 +1,15 @@
 {
   "manifest_version": 2,
   "id": "org.azurlane.blhx-wiki-maibot",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "plugin_type": "tool",
+  "display": {
+    "icon": {
+      "type": "local",
+      "value": "assets/icon.jpg",
+      "fallback": "package"
+    }
+  },
   "name": "碧蓝航线 wiki",
   "description": "碧蓝航线 wiki 查询插件：舰娘、装备、配装、关卡、榜单查询，猜老婆小游戏。",
   "author": {

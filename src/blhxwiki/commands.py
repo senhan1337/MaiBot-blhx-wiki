@@ -1,4 +1,4 @@
-"""命令入口与分发：wiki 查询、猜老婆、自定义回复、群开关。"""
+"""命令入口与分发：wiki 查询、猜老婆、群开关。"""
 from __future__ import annotations
 
 import base64
@@ -13,6 +13,7 @@ from blhxwiki.utils.cache import clear_cache
 from blhxwiki.utils.text import extract_text, user_id_from_kwargs
 
 CUODAO_KEYWORDS = ("锉刀", "锉宝", "挫刀", "小锉锉")
+ADMIN_DENIED = "该命令仅限管理员使用喵（可在 config.toml 的 admin_users 中配置）"
 
 VOICE_LIST = "目前支持查询的语音有：\n" + "、".join(sorted(set(VOICE_MAP)))
 
@@ -58,13 +59,18 @@ async def dispatch(plugin, command: ParsedWikiCommand, stream_id: str, user_id: 
 
     if keyword == "clear":
         if not is_admin(plugin, user_id):
-            return QueryResult(text="该命令仅限管理员使用喵（可在 config.toml 的 admin_users 中配置）")
+            return QueryResult(text=ADMIN_DENIED)
         removed = clear_cache(plugin.ctx.paths.runtime_dir)
         return QueryResult(text=f"缓存清除成功喵（删除 {removed} 个文件）")
 
-    reply = plugin.replies.get(keyword)
-    if reply is not None:
-        return QueryResult(text=reply)
+    if keyword == "猜老婆":
+        mode = query_type.lower()
+        if mode in ("true", "false"):
+            if not is_admin(plugin, user_id):
+                return QueryResult(text=ADMIN_DENIED)
+            plugin.settings.set_guess(stream_id, mode == "true")
+            return QueryResult(text="设置成功喵")
+        return await guess_wife(plugin, stream_id)
 
     if keyword in CUODAO_KEYWORDS:
         return cuodao(plugin)
@@ -105,67 +111,17 @@ async def query_tool(plugin, keyword: str, query_type: str = "", **kwargs) -> di
     return {"success": True, "content": result.text or "已发送查询结果图片。"}
 
 
-async def handle_guess_wife(plugin, **kwargs) -> tuple:
-    stream_id = kwargs.get("stream_id")
-    if not plugin.config.plugin.enabled or not plugin.config.plugin.enable_guess_wife or not plugin.settings.guess_enabled(stream_id):
-        reply = "本群未开启猜老婆功能喵"
-        await plugin.ctx.send.text(reply, stream_id)
-        return True, reply, 2
+async def guess_wife(plugin, stream_id: str) -> QueryResult:
+    """wiki 猜老婆：开启一局；开关由 wiki 猜老婆 true/false 控制（admin_users）。"""
+    if not plugin.config.plugin.enable_guess_wife or not plugin.settings.guess_enabled(stream_id):
+        return QueryResult(text="本群未开启猜老婆功能喵")
     if stream_id in plugin.quizzes:
-        reply = "上一题还没回答正确哦~"
-        await plugin.ctx.send.text(reply, stream_id)
-        return True, reply, 2
-    result = await quiz.start(plugin, stream_id)
-    await send(plugin, result, stream_id)
-    return True, result.text or "[图片]", 2
+        return QueryResult(text="上一题还没回答正确哦~")
+    return await quiz.start(plugin, stream_id)
 
 
 async def handle_quiz_answer(plugin, **kwargs):
     return await quiz.handle_answer(plugin, **kwargs)
-
-
-async def handle_reply(plugin, **kwargs) -> tuple:
-    stream_id = kwargs.get("stream_id")
-    groups = kwargs.get("matched_groups", {})
-    action = (groups.get("action") or "").lower()
-    command = (groups.get("command") or "").strip()
-    content = (groups.get("content") or "").strip()
-
-    if action == "list":
-        commands = plugin.replies.commands()
-        reply = "现有自动回复指令：\n" + "\n".join(commands) if commands else "还没有设置自动回复指令喵"
-    elif action == "delete":
-        reply = "删除成功喵" if plugin.replies.delete(command) else "还没有该指令喵"
-    elif action in ("set", "reset"):
-        if not command or not content:
-            reply = "格式：/reply set [指令] [回复]"
-        else:
-            ok = plugin.replies.set(command, content, overwrite=action == "reset")
-            reply = "设置成功喵" if ok else "该指令已存在，覆盖请用 /reply reset"
-    else:
-        reply = "格式：/reply set|reset|delete|list"
-
-    await plugin.ctx.send.text(reply, stream_id)
-    return True, reply, 2
-
-
-async def handle_config(plugin, **kwargs) -> tuple:
-    stream_id = kwargs.get("stream_id")
-    groups = kwargs.get("matched_groups", {})
-    action = groups.get("action") or ""
-    enabled = (groups.get("value") or "true").lower() == "true"
-
-    if action == "clear":
-        removed = clear_cache(plugin.ctx.paths.runtime_dir)
-        reply = f"缓存清除成功喵（删除 {removed} 个文件）"
-    elif action == "猜老婆":
-        plugin.settings.set_guess(stream_id, enabled)
-        reply = "设置成功喵"
-    else:
-        reply = "不支持的配置项喵"
-
-    await plugin.ctx.send.text(reply, stream_id)
-    return True, reply, 2
 
 
 async def send(plugin, result: QueryResult, stream_id: str) -> None:

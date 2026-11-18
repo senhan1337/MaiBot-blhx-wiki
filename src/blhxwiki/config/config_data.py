@@ -6,7 +6,7 @@
 PRIMARY_COMMANDS = ('wiki',)
 
 SECONDARY_COMMANDS = {
-    'wiki': ['wiki', '.wiki', '/wiki', 'yls'],
+    'wiki': ['wiki'],
     'attribute': ['属性', '基本信息', '基本'],
     'dress': ['皮肤', '换装'],
     'dressLarge': ['皮肤原图', '皮肤大图'],

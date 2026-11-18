@@ -1,7 +1,7 @@
 """wiki 命令解析与参数归一化。
 
 指令格式：
-- 一级指令别名：wiki / .wiki / /wiki / yls（大小写不敏感）
+- 一级指令：wiki（大小写不敏感）
 - 标准格式：``wiki [目标] ([子命令])``
 - 自动分词：``wiki拉菲皮肤`` → 拉菲 / 皮肤
 - 别名替换：``金坷垃`` → ``圣地亚哥``
@@ -66,7 +66,7 @@ def parse_wiki_command(
             break
 
     if prefix is None:
-        # 无空格形式：wiki拉菲皮肤 / yls拉菲
+        # 无空格形式：wiki拉菲皮肤
         return phrase_command(normalized, user_aliases)
 
     args = normalized[len(prefix):].strip().split(" ")

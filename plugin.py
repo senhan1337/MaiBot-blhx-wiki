@@ -28,7 +28,6 @@ from maibot_sdk import (
 from maibot_sdk.types import HookMode, ToolParameterInfo, ToolParamType
 
 from blhxwiki import commands
-from blhxwiki.config.replies import Replies
 from blhxwiki.config.settings import Settings
 from blhxwiki.data.name_list import NameList, create_background_task
 from blhxwiki.data.tech_data import TechPoints, refresh_in_background as refresh_tech
@@ -67,7 +66,6 @@ class BlhxWikiMaiBotPlugin(MaiBotPlugin):
     async def on_load(self) -> None:
         data_dir = Path(self.ctx.paths.data_dir)
         self.settings = Settings(data_dir)
-        self.replies = Replies(data_dir)
         self.names = NameList(data_dir)
         self.tech = TechPoints(data_dir)
         self.quizzes: dict[str, quiz.Quiz] = {}
@@ -148,29 +146,9 @@ class BlhxWikiMaiBotPlugin(MaiBotPlugin):
     async def handle_wiki_command(self, **kwargs) -> tuple:
         return await commands.handle_wiki(self, **kwargs)
 
-    @Command("blhx_guess_wife", pattern=r"^猜老婆$")
-    async def handle_guess_wife_command(self, **kwargs) -> tuple:
-        return await commands.handle_guess_wife(self, **kwargs)
-
     @HookHandler("chat.receive.before_process", mode=HookMode.BLOCKING)
     async def handle_quiz_answer(self, **kwargs):
         return await commands.handle_quiz_answer(self, **kwargs)
-
-    @Command(
-        "blhx_reply",
-        pattern=r"(?i)^/reply\s+(?P<action>set|reset|delete|list)(?:\s+(?P<command>\S+))?(?:\s+(?P<content>.+))?$",
-        permission="operator",
-    )
-    async def handle_reply_command(self, **kwargs) -> tuple:
-        return await commands.handle_reply(self, **kwargs)
-
-    @Command(
-        "blhx_config",
-        pattern=r"(?i)^/wikiconfig\s+(?P<action>猜老婆|clear)(?:\s+(?P<value>true|false))?$",
-        permission="operator",
-    )
-    async def handle_config_command(self, **kwargs) -> tuple:
-        return await commands.handle_config(self, **kwargs)
 
 
 # MaiBot 要求的插件工厂函数。

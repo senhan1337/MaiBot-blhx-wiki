@@ -81,3 +81,19 @@ def test_auto_split_alias() -> None:
     assert cmd is not None
     assert cmd.keyword == "圣地亚哥"
     assert cmd.query_type == "皮肤"
+
+
+def test_guess_wife_command_forms() -> None:
+    bare = parse_wiki_command("wiki 猜老婆")
+    assert bare is not None
+    assert bare.keyword == "猜老婆"
+    assert bare.query_type == ""
+
+    toggle = parse_wiki_command("wiki 猜老婆 false")
+    assert toggle is not None
+    assert toggle.keyword == "猜老婆"
+    assert toggle.query_type == "false"
+
+    compact = parse_wiki_command("wiki猜老婆")
+    assert compact is not None
+    assert compact.keyword == "猜老婆"
