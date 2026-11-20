@@ -18,17 +18,21 @@ CACHE_TTL = 8.0
 
 REGION_NAMES = {"国服": "cn", "日服": "jp", "国际服": "en", "繁中服": "tw"}
 
-# (kind, host, port, url)
-REGIONS: dict[str, list[tuple[str, str | None, int, str | None]]] = {
+# 国服按平台拆分：官服（TCP）/ iOS（HTTP .122）/ 渠道服（HTTP .70），用于分区展示。
+# 元组：(platform, kind, host, port, url)
+REGIONS: dict[str, list[tuple[str, str, str | None, int, str | None]]] = {
     "cn": [
-        ("tcp", "118.178.152.242", 80, None),
-        ("http", None, 0, "http://203.107.54.122/?cmd=load_server?"),
-        ("http", None, 0, "http://203.107.54.70/?cmd=load_server?"),
+        ("官服", "tcp", "118.178.152.242", 80, None),
+        ("iOS", "http", None, 0, "http://203.107.54.122/?cmd=load_server?"),
+        ("渠道服", "http", None, 0, "http://203.107.54.70/?cmd=load_server?"),
     ],
-    "jp": [("tcp", "blhxjploginapi.azurlane.jp", 80, None)],
-    "en": [("tcp", "blhxusgate.yo-star.com", 80, None)],
-    "tw": [("tcp", "prod-all-login.azurlane.tw", 10080, None)],
+    "jp": [("", "tcp", "blhxjploginapi.azurlane.jp", 80, None)],
+    "en": [("", "tcp", "blhxusgate.yo-star.com", 80, None)],
+    "tw": [("", "tcp", "prod-all-login.azurlane.tw", 10080, None)],
 }
+
+# 网关会提前下发未开放/占位服务器（实测 state=99，如 独角鲸行动、永夜巡弋），不展示。
+HIDDEN_STATES = frozenset({99})
 
 
 @dataclass(slots=True)
@@ -36,6 +40,12 @@ class ServerState:
     name: str
     state: int
     sort: int = 0
+    platform: str = ""
+
+
+def visible_servers(servers: list[ServerState]) -> list[ServerState]:
+    """剔除未开放/占位服务器（网关提前下发，实测 state=99）。"""
+    return [item for item in servers if item.state not in HIDDEN_STATES]
 
 
 _cache: dict[str, tuple[float, list[ServerState]]] = {}
@@ -58,6 +68,7 @@ async def get_server_states(region: str) -> list[ServerState]:
     for result in results:
         if isinstance(result, list):
             servers.extend(result)
+    servers = visible_servers(servers)
     servers.sort(key=lambda item: item.sort)
 
     async with _lock:
@@ -65,14 +76,19 @@ async def get_server_states(region: str) -> list[ServerState]:
     return servers
 
 
-async def _query_endpoint(endpoint: tuple[str, str | None, int, str | None]) -> list[ServerState]:
-    kind, host, port, url = endpoint
+async def _query_endpoint(endpoint: tuple[str, str, str | None, int, str | None]) -> list[ServerState]:
+    platform, kind, host, port, url = endpoint
     try:
-        if kind == "http":
-            return await _query_http(url or "")
-        return await asyncio.to_thread(_query_tcp, host or "", port)
+        items = (
+            await _query_http(url or "")
+            if kind == "http"
+            else await asyncio.to_thread(_query_tcp, host or "", port)
+        )
     except Exception:
         return []
+    for item in items:
+        item.platform = platform
+    return items
 
 
 async def _query_http(url: str) -> list[ServerState]:

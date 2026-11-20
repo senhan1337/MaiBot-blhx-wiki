@@ -310,7 +310,7 @@ def generate_server_state_image(
     font_title = loader.font(30)
     font_body = loader.font(24)
 
-    region_order = ("国服", "日服", "国际服", "繁中服")
+    region_order = ("官服", "iOS", "渠道服", "国服", "日服", "国际服", "繁中服")
     grouped = {region: [s for s in servers if s.get("region") == region] for region in region_order}
     grouped = {region: items for region, items in grouped.items() if items}
 
@@ -340,7 +340,8 @@ def generate_server_state_image(
     for (region, items), section_h in zip(grouped.items(), heights):
         left = (width - section_w) // 2
         draw.rounded_rectangle((left, top, left + section_w, top + section_h), radius=20, fill=(235, 239, 244), outline=(214, 220, 228))
-        draw.text((left + section_pad, top + 16), region, font=font_title, fill=(33, 37, 41))
+        title_w = measure.textbbox((0, 0), region, font=font_title)[2]
+        draw.text((left + (section_w - title_w) // 2, top + 16), region, font=font_title, fill=(33, 37, 41))
         start_y = top + 16 + title_h + 12
         for index, item in enumerate(items):
             row, col = divmod(index, columns)

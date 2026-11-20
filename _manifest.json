@@ -1,7 +1,7 @@
 {
   "manifest_version": 2,
   "id": "org.azurlane.blhx-wiki-maibot",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "plugin_type": "tool",
   "display": {
     "icon": {
